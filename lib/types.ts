@@ -27,6 +27,8 @@ export type AuditResult = {
   gaps: string[];
   biggestGap: string;
   estLostRevenuePerMonth: number;
+  currency: "USD" | "INR";
+  conversionScore: number;
 };
 
 export type RankedLead = Lead & {

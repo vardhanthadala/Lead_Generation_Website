@@ -8,6 +8,8 @@ Create a `.env.local` file in the root of the project and add the following keys
 APIFY_TOKEN=your_apify_token_here
 APIFY_ACTOR=compass~crawler-google-places
 GOOGLE_PAGESPEED_KEY=your_google_pagespeed_api_key_here
+GEMINI_API_KEY=your_gemini_api_key_here
+SCRAPER_USER_AGENT="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
 ```
 
 ## Getting Started
@@ -19,7 +21,7 @@ npm run dev
 # or
 yarn dev
 # or
-pnpm dev
+pnpm dev  
 # or
 bun dev
 ```

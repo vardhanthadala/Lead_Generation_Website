@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { PhaseShell } from "./PhaseShell";
 import { IncompleteState } from "./IncompleteState";
-import { Crown, IndianRupee, MessageCircle, Phone, Mail } from "lucide-react";
+import { Crown, IndianRupee, DollarSign, MessageCircle, Phone, Mail } from "lucide-react";
 import type { Lead, AuditResult, RankedLead } from "@/lib/types";
 import { scoreLead } from "@/lib/scoring";
 
@@ -37,8 +37,8 @@ export function Phase3Rank({
   if (ranked.length === 0) {
     return (
       <PhaseShell
-        title="Phase 3 — Ranked prospects"
-        subtitle="Conversion score blends site quality, review volume, rating, reachability, and industry fit. Pick one to build for."
+        title="Phase 3 — AI Ranked Prospects"
+        subtitle="Gemini analyzes site quality, review volume, and industry fit to mathematically rank conversion likelihood."
         onPrev={onPrev}
         onNext={onNext}
         nextDisabled
@@ -48,8 +48,8 @@ export function Phase3Rank({
           title={leads.length === 0 ? "No leads scraped yet" : "No audits yet"}
           description={
             leads.length === 0
-              ? "Phases 1 and 2 haven't been run. After scraping leads and auditing them, this page ranks each by conversion potential and lets you pick one to build for."
-              : "Run an audit in Phase 2 first. Once leads have audits, we score them on site quality, review volume, rating, reachability, and industry fit — then sort for highest conversion potential."
+              ? "Phases 1 and 2 haven't been run. After scraping and auditing leads, Gemini will rank each by conversion potential."
+              : "Run an audit in Phase 2 first. Once audited, Gemini mathematically scores them on conversion potential — then sorts for the highest likelihood of buying a website."
           }
           prevPhaseLabel={leads.length === 0 ? "Scrape" : "Audit"}
           onPrev={onPrev}
@@ -60,8 +60,8 @@ export function Phase3Rank({
 
   return (
     <PhaseShell
-      title="Phase 3 — Ranked prospects"
-      subtitle="Conversion score blends site quality, review volume, rating, reachability, and industry fit. Pick one to build for."
+      title="Phase 3 — AI Ranked Prospects"
+      subtitle="Gemini analyzes site quality, review volume, and industry fit to mathematically rank conversion likelihood."
       onPrev={onPrev}
       onNext={onNext}
       nextDisabled={!selectedId}
@@ -106,7 +106,14 @@ export function Phase3Rank({
                 <div className="font-medium text-base leading-snug">{lead.name}</div>
                 <div className="text-xs text-muted-foreground mt-1">{lead.address}</div>
                 <div className="mt-4 flex items-center gap-3 text-xs">
-                  <span className="flex items-center gap-1"><IndianRupee className="h-3 w-3 text-muted-foreground" />{lead.audit.estLostRevenuePerMonth.toLocaleString("en-IN")}/mo</span>
+                  <span className="flex items-center gap-1">
+                    {lead.audit.currency === "USD" ? (
+                      <DollarSign className="h-3 w-3 text-muted-foreground" />
+                    ) : (
+                      <IndianRupee className="h-3 w-3 text-muted-foreground" />
+                    )}
+                    {lead.audit.estLostRevenuePerMonth.toLocaleString(lead.audit.currency === "USD" ? "en-US" : "en-IN")}/mo
+                  </span>
                   <span className="text-border">·</span>
                   <span className="text-muted-foreground">{lead.reviewsCount} reviews</span>
                 </div>
@@ -132,8 +139,8 @@ export function Phase3Rank({
                 <TableRow>
                   <TableHead className="w-10">#</TableHead>
                   <TableHead>Business</TableHead>
-                  <TableHead className="w-[260px]">Score</TableHead>
-                  <TableHead>₹ Lost / mo</TableHead>
+                  <TableHead className="w-[260px]">AI Score</TableHead>
+                  <TableHead>Lost / mo</TableHead>
                   <TableHead>Site</TableHead>
                   <TableHead className="text-right">Select</TableHead>
                 </TableRow>
@@ -167,7 +174,10 @@ export function Phase3Rank({
                         <span className="font-mono text-sm tabular-nums w-9 text-right">{lead.score}</span>
                       </div>
                     </TableCell>
-                    <TableCell className="font-mono tabular-nums text-sm">₹{lead.audit.estLostRevenuePerMonth.toLocaleString("en-IN")}</TableCell>
+                    <TableCell className="font-mono tabular-nums text-sm">
+                      {lead.audit.currency === "USD" ? "$" : "₹"}
+                      {lead.audit.estLostRevenuePerMonth.toLocaleString(lead.audit.currency === "USD" ? "en-US" : "en-IN")}
+                    </TableCell>
                     <TableCell>
                       {lead.audit.hasWebsite ? (
                         <Badge variant="secondary" className="text-xs font-normal">{lead.audit.pageSpeedScore} PageSpeed</Badge>
