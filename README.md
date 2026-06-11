@@ -1,5 +1,15 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Environment Variables
+
+Create a `.env.local` file in the root of the project and add the following keys:
+
+```bash
+APIFY_TOKEN=your_apify_token_here
+APIFY_ACTOR=compass~crawler-google-places
+GOOGLE_PAGESPEED_KEY=your_google_pagespeed_api_key_here
+```
+
 ## Getting Started
 
 First, run the development server:
