@@ -5,11 +5,24 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 Create a `.env.local` file in the root of the project and add the following keys:
 
 ```bash
+# Apify (Bulk Google Maps Scraping)
 APIFY_TOKEN=your_apify_token_here
 APIFY_ACTOR=compass~crawler-google-places
+
+# Google PageSpeed (Website Auditing)
 GOOGLE_PAGESPEED_KEY=your_google_pagespeed_api_key_here
-GEMINI_API_KEY=your_gemini_api_key_here
 SCRAPER_USER_AGENT="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+
+# Groq (Ultra-fast LLM extraction for manual URLs)
+GROQ_API_KEY=your_groq_api_key_here
+GROQ_MODEL=llama-3.1-8b-instant
+
+# Gemini (AI Auditing & Outreach Drafts)
+GEMINI_API_KEY_1=your_primary_gemini_key
+GEMINI_API_KEY_2=your_fallback_gemini_key
+
+# Neon Postgres (CRM Database)
+DATABASE_URL="postgresql://neondb_owner:.../neondb?sslmode=require"
 ```
 
 ## Getting Started
