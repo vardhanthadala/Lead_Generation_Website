@@ -78,7 +78,8 @@ export function Phase2Audit({
             const data = await res.json();
             
             // Update UI instantly the millisecond this specific lead finishes
-            setAudits((prev) => ({ ...prev, [lead.id]: data.audit }));
+            all[lead.id] = data.audit;
+            setAudits({ ...all });
 
             // Push to permanent CRM Database
             await fetch("/api/crm/leads", {
