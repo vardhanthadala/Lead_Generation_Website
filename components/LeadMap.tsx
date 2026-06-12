@@ -8,10 +8,11 @@ export default function LeadMap({ leads }: { leads: Lead[] }) {
   if (leads.length === 0) {
     return <div className="h-[320px] rounded-lg border border-dashed border-border flex items-center justify-center text-sm text-muted-foreground">Map appears once leads are scraped</div>;
   }
-  const center: [number, number] = [
-    leads.reduce((s, l) => s + l.lat, 0) / leads.length,
-    leads.reduce((s, l) => s + l.lng, 0) / leads.length,
-  ];
+  const validLeads = leads.filter(l => typeof l.lat === 'number' && typeof l.lng === 'number' && !isNaN(l.lat));
+  const center: [number, number] = validLeads.length > 0 ? [
+    validLeads.reduce((s, l) => s + l.lat, 0) / validLeads.length,
+    validLeads.reduce((s, l) => s + l.lng, 0) / validLeads.length,
+  ] : [0, 0];
   return (
     <div className="h-[320px] rounded-lg overflow-hidden border border-border">
       <MapContainer center={center} zoom={14} className="h-full w-full" scrollWheelZoom={false}>

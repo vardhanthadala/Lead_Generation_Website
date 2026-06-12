@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import type { Lead, ScrapeInput } from "@/lib/types";
+import { prisma } from "@/lib/prisma";
 
 const APIFY_TOKEN = process.env.APIFY_TOKEN;
 const APIFY_ACTOR = process.env.APIFY_ACTOR ?? "compass~crawler-google-places";
@@ -103,7 +104,7 @@ export async function POST(req: Request) {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           searchStringsArray: [`${input.niche} in ${input.city}`],
-          maxCrawledPlacesPerSearch: input.count,
+          maxCrawledPlacesPerSearch: Math.max(input.count * 2, 40), // Fetch a larger pool for deduplication
           language: "en",
         }),
       },
@@ -111,7 +112,7 @@ export async function POST(req: Request) {
     if (!runRes.ok) throw new Error(`Apify ${runRes.status}`);
     const items = (await runRes.json()) as Array<Record<string, unknown>>;
 
-    const leads: Lead[] = items.slice(0, input.count).map((it, i) => ({
+    const scrapedLeads: Lead[] = items.map((it, i) => ({
       id: `live-${String(i + 1).padStart(2, "0")}`,
       name: String(it.title ?? it.name ?? "Unknown"),
       category: String(it.categoryName ?? input.niche),
@@ -128,7 +129,61 @@ export async function POST(req: Request) {
       photosCount: typeof it.imagesCount === "number" ? (it.imagesCount as number) : undefined,
     }));
 
-    const enriched = await enrichWithEmails(leads);
+    // Deduplication logic against DB via Prisma
+    const existingLeads = await prisma.lead.findMany({
+      where: { city: input.city },
+      select: { name: true }
+    });
+    const existingNames = new Set(existingLeads.map((l) => l.name.toLowerCase()));
+
+    // Filter out duplicates
+    const newLeads = scrapedLeads.filter(l => !existingNames.has(l.name.toLowerCase()));
+
+    // Shuffle the remaining fresh leads
+    const shuffled = newLeads.sort(() => Math.random() - 0.5);
+
+    // Slice to the requested count
+    const leadsToProcess = shuffled.slice(0, input.count);
+
+    // Enrich with emails before saving to DB
+    const enriched = await enrichWithEmails(leadsToProcess);
+
+    // Save the new leads to PostgreSQL permanently
+    if (enriched.length > 0) {
+      const docsToInsert = enriched.map(l => ({
+        name: l.name,
+        category: l.category,
+        city: l.city,
+        address: l.address,
+        phone: l.phone,
+        whatsapp: l.whatsapp,
+        email: l.email,
+        website: l.website,
+        rating: l.rating,
+        reviewsCount: l.reviewsCount,
+        lat: l.lat,
+        lng: l.lng,
+        photosCount: l.photosCount,
+        status: "scraped"
+      }));
+      
+      // Use createManyAndReturn if available, otherwise just createMany
+      // We will do individual creates or createMany and generate frontend IDs manually if needed.
+      // Wait, let's just generate a UUID up front for each lead
+      const crypto = require("crypto");
+      for (const doc of docsToInsert) {
+        const id = crypto.randomUUID();
+        (doc as any).id = id;
+      }
+      
+      await prisma.lead.createMany({ data: docsToInsert });
+      
+      // Map the real DB _ids back to the frontend payload
+      for (let i = 0; i < enriched.length; i++) {
+        enriched[i].id = (docsToInsert[i] as any).id;
+      }
+    }
+
     return NextResponse.json({ source: "apify", leads: enriched });
   } catch (e) {
     const { leads } = await loadSeed();

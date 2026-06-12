@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -9,9 +9,12 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { PhaseShell } from "./PhaseShell";
 import { IncompleteState } from "./IncompleteState";
-import { MessageCircle, Mail, Camera, Copy, ExternalLink, Sparkles } from "lucide-react";
+import { MessageCircle, Mail, Camera, Copy, ExternalLink, Sparkles, Loader2, RefreshCw, FileText } from "lucide-react";
 import type { RankedLead, OutreachChannel, OutreachLanguage } from "@/lib/types";
 import { toast } from "sonner";
+import jsPDF from "jspdf";
+import * as htmlToImage from "html-to-image";
+import { PdfReportTemplate } from "./PdfReportTemplate";
 
 export function Phase5Outreach({
   selected,
@@ -21,24 +24,62 @@ export function Phase5Outreach({
   onPrev: () => void;
 }) {
   const [channel, setChannel] = useState<OutreachChannel>("whatsapp");
-  const [lang, setLang] = useState<OutreachLanguage>("hinglish");
+  const [lang, setLang] = useState<OutreachLanguage>("english");
   const [message, setMessage] = useState("");
   const [followUp, setFollowUp] = useState("");
+  const pdfRef = useRef<HTMLDivElement>(null);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (!selected) return;
-    const m = buildOutreach(selected, channel, lang);
-    setMessage(m.first);
-    setFollowUp(m.followUp);
+    generateDraft();
   }, [selected, channel, lang]);
+
+  async function generateDraft() {
+    if (!selected) return;
+    setLoading(true);
+    try {
+      const res = await fetch("/api/outreach", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ lead: selected, channel, language: lang }),
+      });
+      const data = await res.json();
+      if (data.first && data.followUp) {
+        setMessage(data.first);
+        setFollowUp(data.followUp);
+      }
+    } catch (e) {
+      toast.error("Failed to generate AI outreach");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function markAsContacted() {
+    if (!selected) return;
+    try {
+      await fetch("/api/crm/leads", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: selected.id, pipelineStage: "contacted" })
+      });
+    } catch (e) {
+      console.error("Failed to update CRM status", e);
+    }
+  }
 
   function copy(text: string) {
     navigator.clipboard.writeText(text);
     toast.success("Copied to clipboard");
+    markAsContacted();
   }
 
   function openChannel() {
     if (!selected) return;
+    markAsContacted();
     if (channel === "whatsapp" && selected.whatsapp) {
       const num = selected.whatsapp.replace(/\D/g, "");
       window.open(`https://wa.me/${num}?text=${encodeURIComponent(message)}`, "_blank");
@@ -52,11 +93,46 @@ export function Phase5Outreach({
     }
   }
 
+  async function downloadPdf() {
+    if (!selected || !pdfRef.current) return;
+    setIsGeneratingPdf(true);
+    toast.info("Generating professional PDF report...");
+    
+    try {
+      const element = pdfRef.current;
+      
+      const pages = Array.from(element.children) as HTMLElement[];
+      const pdf = new jsPDF("p", "mm", "a4");
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      
+      for (let i = 0; i < pages.length; i++) {
+        const pageEl = pages[i];
+        const imgData = await htmlToImage.toPng(pageEl, { 
+          quality: 1.0, 
+          pixelRatio: 2,
+          backgroundColor: '#ffffff'
+        });
+        
+        if (i > 0) pdf.addPage();
+        pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pageHeight);
+      }
+      
+      pdf.save(`${selected.name.replace(/\s+/g, "_")}_Audit_Report.pdf`);
+      toast.success("PDF Downloaded! Attach it to your message.");
+    } catch (e) {
+      toast.error("Failed to generate PDF");
+      console.error("PDF Error:", e);
+    } finally {
+      setIsGeneratingPdf(false);
+    }
+  }
+
   if (!selected) {
     return (
       <PhaseShell
         title="Phase 5 — Outreach"
-        subtitle="Hinglish-first by default — converts 3x better in India. Built-in 5-day follow-up."
+        subtitle="Highly professional AI-drafted outreach. Built-in 3-day follow-up."
         onPrev={onPrev}
       >
         <IncompleteState
@@ -76,19 +152,12 @@ export function Phase5Outreach({
   ];
 
   return (
-    <PhaseShell title="Phase 5 — Outreach" subtitle="Hinglish-first by default — converts 3x better in India. Built-in 5-day follow-up." onPrev={onPrev}>
+    <PhaseShell title="Phase 5 — Outreach" subtitle="Highly professional AI-drafted outreach. Built-in 3-day follow-up." onPrev={onPrev}>
       <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
         <div>
           <div className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">Sending to</div>
           <div className="font-display text-2xl mt-1">{selected.name}</div>
           <div className="text-xs text-muted-foreground mt-0.5">{selected.phone}{selected.email ? ` · ${selected.email}` : ""}</div>
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2">
-            <Label htmlFor="lang" className="text-sm">English</Label>
-            <Switch id="lang" checked={lang === "hinglish"} onCheckedChange={(c) => setLang(c ? "hinglish" : "english")} />
-            <Label htmlFor="lang" className="text-sm">Hinglish</Label>
-          </div>
         </div>
       </div>
 
@@ -111,16 +180,30 @@ export function Phase5Outreach({
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>First message</CardTitle>
             <div className="flex gap-2">
+              <Button size="sm" variant="secondary" onClick={downloadPdf} disabled={isGeneratingPdf} className="bg-rose-100 text-rose-700 hover:bg-rose-200">
+                {isGeneratingPdf ? <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> : <FileText className="h-3.5 w-3.5 mr-1.5" />} 
+                Get PDF
+              </Button>
+              <Button size="sm" variant="secondary" onClick={generateDraft} disabled={loading}>
+                <RefreshCw className={`h-3.5 w-3.5 mr-1.5 ${loading ? "animate-spin" : ""}`} /> New AI Draft
+              </Button>
               <Button size="sm" variant="outline" onClick={() => copy(message)}><Copy className="h-3.5 w-3.5 mr-1.5" /> Copy</Button>
               <Button size="sm" onClick={openChannel}><ExternalLink className="h-3.5 w-3.5 mr-1.5" /> Send</Button>
             </div>
           </CardHeader>
           <CardContent>
-            <Textarea
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              className="font-mono text-sm min-h-[300px]"
-            />
+            {loading ? (
+              <div className="min-h-[300px] flex flex-col items-center justify-center bg-muted/20 border border-border rounded-md">
+                <Loader2 className="h-8 w-8 text-primary animate-spin mb-3" />
+                <p className="text-sm text-muted-foreground animate-pulse">AI is writing a professional draft...</p>
+              </div>
+            ) : (
+              <Textarea
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                className="font-mono text-sm min-h-[300px]"
+              />
+            )}
             <div className="mt-3 text-xs text-muted-foreground flex items-center gap-2">
               <Sparkles className="h-3.5 w-3.5" />
               Hook: personal · Pain: their biggest gap · Demo: live link · CTA: low-friction yes/no
@@ -133,11 +216,18 @@ export function Phase5Outreach({
             <CardTitle>Day-3 follow-up (auto-draft)</CardTitle>
           </CardHeader>
           <CardContent>
-            <Textarea
-              value={followUp}
-              onChange={(e) => setFollowUp(e.target.value)}
-              className="font-mono text-sm min-h-[300px]"
-            />
+            {loading ? (
+              <div className="min-h-[300px] flex flex-col items-center justify-center bg-muted/20 border border-border rounded-md">
+                <Loader2 className="h-8 w-8 text-primary animate-spin mb-3" />
+                <p className="text-sm text-muted-foreground animate-pulse">Drafting follow-up...</p>
+              </div>
+            ) : (
+              <Textarea
+                value={followUp}
+                onChange={(e) => setFollowUp(e.target.value)}
+                className="font-mono text-sm min-h-[300px]"
+              />
+            )}
             <div className="mt-3 flex justify-end">
               <Button size="sm" variant="outline" onClick={() => copy(followUp)}><Copy className="h-3.5 w-3.5 mr-1.5" /> Copy follow-up</Button>
             </div>
@@ -156,6 +246,9 @@ export function Phase5Outreach({
           </div>
         </CardContent>
       </Card>
+
+      {/* Hidden PDF Layout */}
+      <PdfReportTemplate ref={pdfRef} lead={selected} />
     </PhaseShell>
   );
 }

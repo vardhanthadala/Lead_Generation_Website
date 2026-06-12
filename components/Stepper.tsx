@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Check, Search, FileSearch, Trophy, Sparkles, Send } from "lucide-react";
+import { Check, Search, FileSearch, Trophy, Sparkles, Send, Database } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const STEPS = [
@@ -10,6 +10,7 @@ const STEPS = [
   { id: 3, label: "Rank", icon: Trophy },
   { id: 4, label: "Build", icon: Sparkles },
   { id: 5, label: "Outreach", icon: Send },
+  { id: 6, label: "Pipeline", icon: Database },
 ];
 
 export function Stepper({
@@ -24,7 +25,7 @@ export function Stepper({
   return (
     <div className="max-w-5xl mx-auto px-4 pb-6 pt-2" role="navigation" aria-label="Pipeline progress">
       <div className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground text-center mb-3">
-        Step <span className="font-mono text-foreground">{String(current).padStart(2, "0")}</span> of <span className="font-mono">05</span> · {STEPS[current - 1]?.label}
+        Step <span className="font-mono text-foreground">{String(current).padStart(2, "0")}</span> of <span className="font-mono">06</span> · {STEPS[current - 1]?.label}
       </div>
       <div className="w-full flex items-center justify-between gap-2">
       {STEPS.map((step, i) => {

@@ -29,6 +29,30 @@ export function Phase1Scrape({
 }) {
   const [input, setInput] = useState<ScrapeInput>({ niche: "", city: "", count: "" as unknown as number });
   const [loading, setLoading] = useState(false);
+  const [manualUrl, setManualUrl] = useState("");
+  const [manualLoading, setManualLoading] = useState(false);
+
+  async function addManualUrl() {
+    if (!manualUrl) return;
+    setManualLoading(true);
+    try {
+      const res = await fetch("/api/scrape-url", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ url: manualUrl }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Failed to extract website");
+      
+      setLeads([data.lead, ...leads]);
+      setManualUrl("");
+      toast.success(`Added ${data.lead.name} to leads!`);
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setManualLoading(false);
+    }
+  }
 
   async function runScrape() {
     setLoading(true);
@@ -83,8 +107,29 @@ export function Phase1Scrape({
               <p className="text-[11px] text-muted-foreground">Max 25 for free Apify tier.</p>
             </div>
             <Button onClick={runScrape} disabled={loading || !input.niche || !input.city || !input.count} className="w-full h-11 transition-transform duration-150 active:scale-[0.98]">
-              {loading ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Scraping...</> : "Scrape leads"}
+              {loading ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Scraping...</> : "Bulk Scrape leads"}
             </Button>
+
+            <div className="relative py-2">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t border-border" />
+              </div>
+              <div className="relative flex justify-center text-[10px] uppercase tracking-wider">
+                <span className="bg-card px-2 text-muted-foreground">Or quick add by URL</span>
+              </div>
+            </div>
+
+            <div className="flex gap-2">
+              <Input 
+                placeholder="https://example.com" 
+                value={manualUrl} 
+                onChange={e => setManualUrl(e.target.value)} 
+                className="flex-1 text-xs h-9"
+              />
+              <Button onClick={addManualUrl} disabled={manualLoading || !manualUrl} size="sm" variant="secondary" className="h-9">
+                {manualLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Extract"}
+              </Button>
+            </div>
             <div className="grid grid-cols-3 gap-2 pt-2">
               <Stat label="Found" value={leads.length} />
               <Stat label="With phone" value={leads.filter((l) => l.phone).length} />

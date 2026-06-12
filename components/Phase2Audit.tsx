@@ -12,6 +12,7 @@ import { IncompleteState } from "./IncompleteState";
 import { Loader2, AlertTriangle, IndianRupee, DollarSign, Gauge, Star, Phone, MessageCircle, Globe } from "lucide-react";
 import type { Lead, AuditResult } from "@/lib/types";
 import { toast } from "sonner";
+import { Badge as BadgeIcon, Code2, Search, ArrowUpRight } from "lucide-react";
 
 export function Phase2Audit({
   leads,
@@ -61,18 +62,42 @@ export function Phase2Audit({
     setProgress(0);
     try {
       const all: Record<string, AuditResult> = { ...audits };
-      for (let i = 0; i < targets.length; i++) {
-        const lead = targets[i];
-        const res = await fetch("/api/audit", {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({ lead }),
-        });
-        const data = await res.json();
-        all[lead.id] = data.audit;
-        setAudits({ ...all });
-        setProgress(Math.round(((i + 1) / targets.length) * 100));
-        await new Promise((r) => setTimeout(r, 150));
+      const batchSize = 5;
+      let completed = 0;
+
+      for (let i = 0; i < targets.length; i += batchSize) {
+        const batch = targets.slice(i, i + batchSize);
+        
+        await Promise.all(batch.map(async (lead) => {
+          try {
+            const res = await fetch("/api/audit", {
+              method: "POST",
+              headers: { "content-type": "application/json" },
+              body: JSON.stringify({ lead }),
+            });
+            const data = await res.json();
+            
+            // Update UI instantly the millisecond this specific lead finishes
+            setAudits((prev) => ({ ...prev, [lead.id]: data.audit }));
+
+            // Push to permanent CRM Database
+            await fetch("/api/crm/leads", {
+              method: "POST",
+              headers: { "content-type": "application/json" },
+              body: JSON.stringify({
+                ...lead,
+                auditData: data.audit,
+                pipelineStage: "audited",
+              }),
+            }).catch(err => console.error("Failed to push lead to CRM:", err));
+
+          } catch (err) {
+            console.error(`Audit failed for ${lead.name}:`, err);
+          } finally {
+            completed++;
+            setProgress(Math.round((completed / targets.length) * 100));
+          }
+        }));
       }
       toast.success(`Audited ${targets.length} lead${targets.length === 1 ? "" : "s"}`);
     } catch (e) {
@@ -265,10 +290,38 @@ export function Phase2Audit({
                         ))}
                       </div>
                       <div className="rounded-md bg-muted/60 p-2.5 text-xs border border-border">
-                        <div className="flex items-start gap-1.5">
+                        <div className="flex items-start gap-1.5 mb-2">
                           <AlertTriangle className="h-3.5 w-3.5 text-[color:var(--chart-4)] mt-0.5 shrink-0" strokeWidth={1.75} />
                           <span className="text-muted-foreground italic leading-relaxed">{a.biggestGap}</span>
                         </div>
+                        {a.techStack && (
+                          <div className="grid gap-2 border-t border-border/50 pt-2 mt-2">
+                            <div className="flex items-start gap-1.5">
+                              <Code2 className="h-3.5 w-3.5 text-primary mt-0.5 shrink-0" strokeWidth={1.5} />
+                              <div>
+                                <span className="font-medium text-foreground">Stack: </span>
+                                <span className="text-muted-foreground">{a.techStack}</span>
+                              </div>
+                            </div>
+                            <div className="flex items-start gap-1.5">
+                              <Search className="h-3.5 w-3.5 text-[color:var(--accent-foreground)] mt-0.5 shrink-0" strokeWidth={1.5} />
+                              <div>
+                                <span className="font-medium text-foreground">SEO: </span>
+                                <span className="text-muted-foreground">{a.seoHealth}</span>
+                              </div>
+                            </div>
+                            {a.suggestedUpgrades && a.suggestedUpgrades.length > 0 && (
+                              <div className="flex flex-col gap-1 mt-1">
+                                {a.suggestedUpgrades.map((u, idx) => (
+                                  <div key={idx} className="flex items-start gap-1.5">
+                                    <ArrowUpRight className="h-3 w-3 text-emerald-500 mt-0.5 shrink-0" strokeWidth={2} />
+                                    <span className="text-muted-foreground leading-tight">{u}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </>
                   ) : (

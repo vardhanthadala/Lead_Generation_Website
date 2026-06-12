@@ -45,48 +45,92 @@ export async function POST(req: Request) {
   if (!lead.whatsapp) gaps.push("No WhatsApp click-to-chat");
   gaps.push("No online booking", "No schema markup", "Weak local SEO");
 
+  let htmlSnippet = "";
+  if (hasWebsite) {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 3000);
+      const siteRes = await fetch(lead.website!.startsWith("http") ? lead.website! : `https://${lead.website}`, { 
+        signal: controller.signal,
+        headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" }
+      });
+      clearTimeout(timeoutId);
+      const html = await siteRes.text();
+      htmlSnippet = html.substring(0, 3000); // Send first 3000 chars to AI to find tech stack and meta tags
+    } catch (e) {
+      console.log("Failed to fetch website HTML for audit:", e);
+    }
+  }
+
   let currency: "USD" | "INR" = "USD";
   let estLostRevenuePerMonth = 0;
   let biggestGap = "";
   let conversionScore = 0;
+  let techStack = "Unknown";
+  let seoHealth = "Unknown";
+  let uiModernity = 5;
+  let suggestedUpgrades: string[] = [];
   let aiSuccess = false;
 
-  const aiPrompt = `You are a top-tier business consultant. 
+  const aiPrompt = `You are an expert technical auditor and business consultant. 
       Analyze this business:
       Name: ${lead.name}
       Category/Niche: ${lead.category}
       Location: ${lead.address}
       Google Reviews: ${lead.reviewsCount ?? 0}
-      Website: ${hasWebsite ? "Yes" : "No"}
-      Mobile PageSpeed: ${score}/100
+      Website: ${hasWebsite ? lead.website : "No"}
+      Mobile PageSpeed Score: ${score}/100
 
-      Calculate the estimated lost monthly revenue based on this exact niche's average customer lifetime value and the location. If the location is in India, return currency as "INR". If it's in the USA, return "USD". If it's an agency, tech, medical, or event planner, make the amount much higher.
-      Also, calculate a strict mathematical 'conversionScore' from 0-100 indicating how likely they are to buy a new website. High score (80-100) ONLY if they have lots of reviews but NO website or a terrible Pagespeed. Low score (0-30) if they have zero reviews or a perfect website. Do not hallucinate, use strict logic.
-      Return ONLY a raw JSON object. Do not use markdown blocks, backticks, or any other text.
+      Website HTML Snippet (for tech stack & SEO analysis):
+      \`\`\`html
+      ${htmlSnippet}
+      \`\`\`
+
+      Perform a deep technical and business audit.
+      1. Calculate 'estLostRevenuePerMonth' based on the niche's average lifetime value. (India = INR, USA/Global = USD). High-ticket (tech/medical/agency) = huge revenue loss. Do NOT output 12500 every time, actually calculate a realistic dynamic integer based on their specific niche and review count.
+      2. Calculate an 'Overall Digital Competitiveness Score' (0-100) indicating the quality of their current digital presence. Generate a LOW score (15-45) if they have NO website, slow PageSpeed, or a bad template. Generate a HIGH score (80+) only if they have a fast, modern site.
+      3. Identify their 'techStack' from the HTML (e.g. "Basic HTML Template", "WordPress", "Wix", "React", "Next.js"). If no website, output "None".
+      4. Evaluate 'seoHealth' from the HTML (e.g. "Missing meta description, generic title tag", "Good basic SEO").
+      5. Rate 'uiModernity' from 1 to 10 (guess based on tech stack and pagespeed).
+      6. Provide 2-3 'suggestedUpgrades' (e.g. "Migrate from static HTML to Next.js for instant loading", "Add semantic SEO markup").
+
+      Return ONLY a raw JSON object. Do not use markdown blocks or backticks. Follow this exact JSON structure but YOU MUST CALCULATE YOUR OWN DYNAMIC VALUES based on the business data. DO NOT copy these example values:
       {
         "currency": "USD",
-        "estLostRevenuePerMonth": 12500,
-        "conversionScore": 85,
-        "biggestGap": "A 1-sentence punchy, personalized pitch explaining their biggest missed opportunity."
+        "estLostRevenuePerMonth": 12450,
+        "conversionScore": 72,
+        "biggestGap": "A 1-sentence punchy pitch explaining their biggest missed opportunity.",
+        "techStack": "WordPress",
+        "seoHealth": "Missing meta description and H1 tags",
+        "uiModernity": 3,
+        "suggestedUpgrades": ["Replace simple HTML with Next.js for faster load speeds", "Implement proper schema markup"]
       }`;
 
-  if (process.env.GEMINI_API_KEY) {
+  const geminiKeys = [process.env.GEMINI_API_KEY_1, process.env.GEMINI_API_KEY_2].filter(Boolean) as string[];
+  
+  for (const key of geminiKeys) {
+    if (aiSuccess) break;
     try {
-      const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+      const genAI = new GoogleGenerativeAI(key);
       const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
       const result = await model.generateContent(aiPrompt);
       let text = result.response.text().trim();
-      if (text.startsWith("```")) {
-        text = text.replace(/```json/g, "").replace(/```/g, "").trim();
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        text = jsonMatch[0];
       }
       const aiData = JSON.parse(text);
       currency = aiData.currency === "INR" ? "INR" : "USD";
       estLostRevenuePerMonth = aiData.estLostRevenuePerMonth;
       conversionScore = Math.min(100, Math.max(0, aiData.conversionScore || 50));
       biggestGap = aiData.biggestGap;
+      techStack = aiData.techStack || "Unknown";
+      seoHealth = aiData.seoHealth || "Unknown";
+      uiModernity = aiData.uiModernity || 5;
+      suggestedUpgrades = aiData.suggestedUpgrades || [];
       aiSuccess = true;
     } catch (e) {
-      console.error("Gemini fallback:", e);
+      console.log("Gemini fallback on key:", e);
     }
   }
 
@@ -95,18 +139,23 @@ export async function POST(req: Request) {
       const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
       const completion = await groq.chat.completions.create({
         messages: [{ role: "user", content: aiPrompt }],
-        model: "llama-3.1-8b-instant",
+        model: process.env.GROQ_MODEL || "llama-3.1-8b-instant",
         temperature: 0.5,
       });
       let text = completion.choices[0]?.message?.content?.trim() || "{}";
-      if (text.startsWith("```")) {
-        text = text.replace(/```json/g, "").replace(/```/g, "").trim();
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        text = jsonMatch[0];
       }
       const aiData = JSON.parse(text);
       currency = aiData.currency === "INR" ? "INR" : "USD";
       estLostRevenuePerMonth = aiData.estLostRevenuePerMonth;
       conversionScore = Math.min(100, Math.max(0, aiData.conversionScore || 50));
       biggestGap = aiData.biggestGap;
+      techStack = aiData.techStack || "Unknown";
+      seoHealth = aiData.seoHealth || "Unknown";
+      uiModernity = aiData.uiModernity || 5;
+      suggestedUpgrades = aiData.suggestedUpgrades || [];
       aiSuccess = true;
     } catch (e) {
       console.error("Groq fallback failed:", e);
@@ -159,6 +208,10 @@ export async function POST(req: Request) {
     estLostRevenuePerMonth,
     currency,
     conversionScore,
+    techStack,
+    seoHealth,
+    uiModernity,
+    suggestedUpgrades,
   };
   return NextResponse.json({ audit });
 }

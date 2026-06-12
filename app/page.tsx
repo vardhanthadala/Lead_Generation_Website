@@ -8,6 +8,7 @@ import { Phase2Audit } from "@/components/Phase2Audit";
 import { Phase3Rank } from "@/components/Phase3Rank";
 import { Phase4Build } from "@/components/Phase4Build";
 import { Phase5Outreach } from "@/components/Phase5Outreach";
+import { Phase6Pipeline } from "@/components/Phase6Pipeline";
 import { scoreLead } from "@/lib/scoring";
 import type { Lead, AuditResult } from "@/lib/types";
 
@@ -115,6 +116,12 @@ export default function Page() {
               key="p5"
               selected={selectedRanked}
               onPrev={() => setPhase(4)}
+            />
+          )}
+          {phase === 6 && (
+            <Phase6Pipeline
+              key="p6"
+              onPrev={() => setPhase(5)}
             />
           )}
         </AnimatePresence>

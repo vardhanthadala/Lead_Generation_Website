@@ -29,6 +29,10 @@ export type AuditResult = {
   estLostRevenuePerMonth: number;
   currency: "USD" | "INR";
   conversionScore: number;
+  techStack?: string;
+  seoHealth?: string;
+  uiModernity?: number;
+  suggestedUpgrades?: string[];
 };
 
 export type RankedLead = Lead & {
