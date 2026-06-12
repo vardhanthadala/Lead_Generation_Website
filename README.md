@@ -1,8 +1,58 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Lead to Launch 🚀
 
-## Environment Variables
+Lead to Launch is an end-to-end AI-powered Agency CRM and Lead Generation platform. It automates the entire process of finding local businesses, deeply auditing their digital presence, generating professional AI outreach messages, creating PDF reports, and tracking them through a built-in Kanban pipeline.
 
-Create a `.env.local` file in the root of the project and add the following keys:
+---
+
+## ⚙️ The 6-Phase Pipeline
+
+**Phase 1: Scrape & Source**
+- **Bulk Scrape:** Enter a niche (e.g., "Plumber") and a city. The app connects to the Apify Google Maps crawler to extract hundreds of local businesses, their phone numbers, emails, and ratings instantly.
+- **Manual URL Entry:** Instantly add a single lead by pasting their website URL. The app uses Cheerio and Groq's Llama 3 to scrape the website and extract their Business Name, Email, and Phone Number in seconds.
+
+**Phase 2: AI Business Audit**
+- Select the leads you want to target.
+- The app pings the **Google PageSpeed API** to calculate their website loading speed.
+- **Gemini / Llama 3** analyzes their website HTML to identify their Tech Stack (e.g., WordPress, Next.js), SEO health, and calculates a dynamic **Estimated Lost Revenue** based on their niche and review count.
+- *Note: Audits are batched and run in parallel (5 at a time) for extreme speed.*
+
+**Phase 3: Rank & Prioritize**
+- Uses a proprietary algorithm to score leads out of 100 based on their audit results.
+- Prioritizes businesses that have bad websites (or no website), poor SEO, but high Google Maps reviews (indicating they have money but a bad digital presence).
+
+**Phase 4: PDF Report Generation**
+- Generates a gorgeous, client-ready PDF report detailing their audit failures.
+- Perfect for attaching to cold emails or handing to them in person.
+
+**Phase 5: AI Outreach & Pitching**
+- Select an outreach channel (WhatsApp, Email, or Instagram) and a language tone (English or Hinglish).
+- The AI instantly generates a highly personalized, context-aware pitch explaining exactly how much money they are losing due to their slow website or poor SEO.
+- One-click buttons to instantly open WhatsApp Web or your Email client with the message pre-filled.
+
+**Phase 6: CRM Pipeline (Neon Postgres)**
+- A persistent, drag-and-drop Kanban board to track your sales pipeline.
+- Stages: `Audited` ➡️ `Contacted` ➡️ `Demo Built` ➡️ `Closed Won` ➡️ `Closed Lost`.
+- As you copy emails or send WhatsApp messages in Phase 5, leads are automatically moved to the "Contacted" stage in the CRM.
+
+---
+
+## 🛠️ Tech Stack
+
+- **Frontend:** Next.js 16 (App Router), React, Tailwind CSS, Framer Motion, shadcn/ui
+- **Backend:** Next.js Route Handlers
+- **Database:** Neon Serverless Postgres, Drizzle ORM
+- **AI & Processing:** 
+  - Vercel AI SDK
+  - Gemini Flash (Deep Audits & Outreach Generation)
+  - Groq Llama 3.1 8B (Instant HTML extraction)
+- **Scraping:** Apify, Cheerio
+
+---
+
+## 🚀 Getting Started
+
+### 1. Environment Variables
+Create a `.env.local` file in the root of the project (`app/`) and add the following keys:
 
 ```bash
 # Apify (Bulk Google Maps Scraping)
@@ -25,37 +75,25 @@ GEMINI_API_KEY_2=your_fallback_gemini_key
 DATABASE_URL="postgresql://neondb_owner:.../neondb?sslmode=require"
 ```
 
-## Getting Started
-
-First, run the development server:
+### 2. Database Setup (Drizzle + Neon)
+This project uses Drizzle ORM. Ensure your `DATABASE_URL` is set, then push the schema to your Neon Postgres database:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev  
-# or
-bun dev
+npx drizzle-kit push
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 3. Run the Development Server
+Install dependencies and start the app:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm install
+npm run dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## 💡 Deployment
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The easiest way to deploy this app is on [Vercel](https://vercel.com). Simply push your code to GitHub, connect the repository to Vercel, and paste your environment variables into the Vercel project settings. Serverless Postgres via Neon ensures the database scales seamlessly with Vercel's edge network.
