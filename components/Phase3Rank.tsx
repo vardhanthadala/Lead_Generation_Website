@@ -42,7 +42,7 @@ export function Phase3Rank({
         onPrev={onPrev}
         onNext={onNext}
         nextDisabled
-        nextLabel="Build website"
+        nextLabel="Outreach"
       >
         <IncompleteState
           title={leads.length === 0 ? "No leads scraped yet" : "No audits yet"}
@@ -65,7 +65,7 @@ export function Phase3Rank({
       onPrev={onPrev}
       onNext={onNext}
       nextDisabled={!selectedId}
-      nextLabel="Build website"
+      nextLabel="Outreach"
     >
       <div className="grid lg:grid-cols-3 gap-4 mb-4">
         {ranked.slice(0, 3).map((lead, i) => (
@@ -87,19 +87,19 @@ export function Phase3Rank({
                   setSelectedId(lead.id);
                 }
               }}
-              className={`cursor-pointer transition-all duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background hover:-translate-y-0.5 ${
-                selectedId === lead.id
+              className={`cursor-pointer transition-all duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background hover:-translate-y-0.5 ${selectedId === lead.id
                   ? "ring-1 ring-primary border-primary/30"
                   : "hover:border-primary/30"
-              }`}
+                }`}
             >
               <CardHeader>
                 <div className="flex items-start justify-between">
                   <CardTitle className="text-sm flex items-center gap-2 font-medium tracking-wide uppercase text-muted-foreground">
-                    <Crown className="h-3.5 w-3.5 text-[color:var(--chart-4)]" strokeWidth={1.5} />
+                    <Crown className="h-3.5 w-3.5 text-[color:var(--accent-red)]" strokeWidth={1.5} />
                     Rank · {String(i + 1).padStart(2, "0")}
                   </CardTitle>
-                  <div className="font-display text-3xl tabular-nums leading-none">{lead.score}</div>
+                  <div className={`text-3xl tabular-nums leading-none font-[900] tracking-tight ${lead.score < 50 ? "text-red-600" : lead.score < 90 ? "text-amber-500" : "text-emerald-500"
+                    }`}>{lead.score}</div>
                 </div>
               </CardHeader>
               <CardContent>
@@ -168,10 +168,10 @@ export function Phase3Rank({
                             initial={{ width: 0 }}
                             animate={{ width: `${lead.score}%` }}
                             transition={{ duration: 0.8, delay: i * 0.05, ease: "easeOut" }}
-                            className="h-full bg-primary"
+                            className={`h-full ${lead.score < 50 ? "bg-red-500" : lead.score < 90 ? "bg-amber-500" : "bg-emerald-500"}`}
                           />
                         </div>
-                        <span className="font-mono text-sm tabular-nums w-9 text-right">{lead.score}</span>
+                        <span className={`font-mono text-sm font-bold tabular-nums w-9 text-right ${lead.score < 50 ? "text-red-600" : lead.score < 90 ? "text-amber-500" : "text-emerald-500"}`}>{lead.score}</span>
                       </div>
                     </TableCell>
                     <TableCell className="font-mono tabular-nums text-sm">
@@ -180,15 +180,21 @@ export function Phase3Rank({
                     </TableCell>
                     <TableCell>
                       {lead.audit.hasWebsite ? (
-                        <Badge variant="secondary" className="text-xs font-normal">{lead.audit.pageSpeedScore} PageSpeed</Badge>
+                        <Badge variant="outline" className={`text-xs font-normal ${lead.audit.pageSpeedScore < 50
+                            ? "text-red-600 border-red-600/30 bg-red-600/10"
+                            : lead.audit.pageSpeedScore < 90
+                              ? "text-amber-600 border-amber-600/30 bg-amber-600/10"
+                              : "text-emerald-600 border-emerald-600/30 bg-emerald-600/10"
+                          }`}>{lead.audit.pageSpeedScore} PageSpeed</Badge>
                       ) : (
-                        <Badge variant="outline" className="text-xs font-normal text-[color:var(--destructive)] border-[color:var(--destructive)]/40 bg-[color:var(--destructive)]/5">None</Badge>
+                        <Badge variant="outline" className="text-xs font-normal text-red-600 border-red-600/30 bg-red-600/10">None</Badge>
                       )}
                     </TableCell>
                     <TableCell className="text-right">
                       <Button
                         size="sm"
                         variant={selectedId === lead.id ? "default" : "outline"}
+                        className={selectedId !== lead.id ? "text-muted-foreground hover:text-primary hover:border-primary/50 hover:bg-primary/5" : "shadow-md"}
                         onClick={(e) => {
                           e.stopPropagation();
                           setSelectedId(lead.id);

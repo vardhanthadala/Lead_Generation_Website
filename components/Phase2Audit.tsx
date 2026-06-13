@@ -145,30 +145,30 @@ export function Phase2Audit({
       <div className="grid md:grid-cols-4 gap-3 mb-6">
         <Card>
           <CardContent className="pt-6">
-            <div className="text-[11px] uppercase tracking-[0.15em] text-muted-foreground">Audited</div>
-            <div className="font-display text-3xl tabular-nums mt-2">{auditedCount}<span className="text-muted-foreground/50 text-2xl"> / {leads.length}</span></div>
+            <div className="text-[11px] uppercase tracking-[0.15em] text-[color:var(--accent-red)] font-semibold">Audited</div>
+            <div className="text-3xl tabular-nums mt-2 font-[900] tracking-tight">{auditedCount}<span className="text-muted-foreground/50 text-2xl"> / {leads.length}</span></div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-6">
-            <div className="text-[11px] uppercase tracking-[0.15em] text-muted-foreground">No site at all</div>
-            <div className="font-display text-3xl tabular-nums text-[color:var(--destructive)] mt-2">
+            <div className="text-[11px] uppercase tracking-[0.15em] text-[color:var(--accent-red)] font-semibold">No site at all</div>
+            <div className="text-3xl tabular-nums text-[color:var(--destructive)] mt-2 font-[900] tracking-tight">
               {Object.values(audits).filter((a) => !a.hasWebsite).length}
             </div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-6">
-            <div className="text-[11px] uppercase tracking-[0.15em] text-muted-foreground">Avg PageSpeed</div>
-            <div className="font-display text-3xl tabular-nums mt-2">
+            <div className="text-[11px] uppercase tracking-[0.15em] text-[color:var(--accent-red)] font-semibold">Avg PageSpeed</div>
+            <div className="text-3xl tabular-nums mt-2 font-[900] tracking-tight">
               {auditedCount ? Math.round(Object.values(audits).reduce((s, a) => s + a.pageSpeedScore, 0) / auditedCount) : 0}
             </div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-6">
-            <div className="text-[11px] uppercase tracking-[0.15em] text-muted-foreground">Est. {primaryCurrency === "USD" ? "$" : "₹"} lost / month</div>
-            <div className="font-display text-3xl tabular-nums flex items-center mt-2">
+            <div className="text-[11px] uppercase tracking-[0.15em] text-[color:var(--accent-red)] font-semibold">Est. {primaryCurrency === "USD" ? "$" : "₹"} lost / month</div>
+            <div className="text-3xl tabular-nums flex items-center mt-2 font-[900] tracking-tight text-red-600">
               {primaryCurrency === "USD" ? (
                 <DollarSign className="h-6 w-6" strokeWidth={1.5} />
               ) : (
@@ -243,7 +243,7 @@ export function Phase2Audit({
                   {/* Lead summary — always shown */}
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs text-muted-foreground">
                     <span className="flex items-center gap-1">
-                      <Star className="h-3 w-3 fill-[color:var(--chart-4)] text-[color:var(--chart-4)]" strokeWidth={1.5} />
+                      <Star className="h-3 w-3 fill-[color:var(--accent-red)] text-[color:var(--accent-red)]" strokeWidth={1.5} />
                       <span className="font-mono tabular-nums">{lead.rating?.toFixed(1) ?? "—"}</span>
                       <span className="text-muted-foreground/70">({lead.reviewsCount ?? 0})</span>
                     </span>
@@ -275,7 +275,7 @@ export function Phase2Audit({
                         <PageSpeedGauge score={a.pageSpeedScore} />
                         <div className="flex-1 min-w-0">
                           <div className="text-[10px] uppercase tracking-[0.15em] text-muted-foreground">Est. lost / mo</div>
-                          <div className="font-display text-lg tabular-nums flex items-center mt-0.5">
+                          <div className="text-lg tabular-nums flex items-center mt-0.5 font-[900] tracking-tight text-red-600">
                             {a.currency === "USD" ? (
                               <DollarSign className="h-3.5 w-3.5" strokeWidth={1.5} />
                             ) : (
@@ -292,7 +292,7 @@ export function Phase2Audit({
                       </div>
                       <div className="rounded-md bg-muted/60 p-2.5 text-xs border border-border">
                         <div className="flex items-start gap-1.5 mb-2">
-                          <AlertTriangle className="h-3.5 w-3.5 text-[color:var(--chart-4)] mt-0.5 shrink-0" strokeWidth={1.75} />
+                          <AlertTriangle className="h-3.5 w-3.5 text-[color:var(--accent-red)] mt-0.5 shrink-0" strokeWidth={1.75} />
                           <span className="text-muted-foreground italic leading-relaxed">{a.biggestGap}</span>
                         </div>
                         {a.techStack && (
@@ -341,8 +341,8 @@ export function Phase2Audit({
 }
 
 function PageSpeedGauge({ score }: { score: number }) {
-  const color = score === 0 ? "text-[color:var(--destructive)]" : score < 50 ? "text-[color:var(--destructive)]" : score < 70 ? "text-[color:var(--chart-4)]" : "text-[color:var(--accent-foreground)]";
-  const ring = score === 0 ? "stroke-[color:var(--destructive)]" : score < 50 ? "stroke-[color:var(--destructive)]" : score < 70 ? "stroke-[color:var(--chart-4)]" : "stroke-[color:var(--accent-foreground)]";
+  const color = score === 0 ? "text-[color:var(--destructive)]" : score < 50 ? "text-[color:var(--destructive)]" : score < 70 ? "text-[color:var(--accent-red)]" : "text-[color:var(--accent-foreground)]";
+  const ring = score === 0 ? "stroke-[color:var(--destructive)]" : score < 50 ? "stroke-[color:var(--destructive)]" : score < 70 ? "stroke-[color:var(--accent-red)]" : "stroke-[color:var(--accent-foreground)]";
   const circumference = 2 * Math.PI * 22;
   const offset = circumference - (score / 100) * circumference;
   return (

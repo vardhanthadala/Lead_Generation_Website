@@ -24,7 +24,7 @@ export function IncompleteState({
         <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-2">
           Preview · No data yet
         </div>
-        <h2 className="font-display text-2xl mb-3">{title}</h2>
+        <h2 className="text-2xl mb-3 font-[900] tracking-tight">{title}</h2>
         <p className="text-sm text-muted-foreground leading-relaxed mb-6">{description}</p>
         {onPrev && (
           <Button variant="outline" onClick={onPrev} className="h-10 px-4">

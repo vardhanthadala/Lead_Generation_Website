@@ -4,8 +4,8 @@ import path from "node:path";
 import type { Lead, ScrapeInput } from "@/lib/types";
 import { prisma } from "@/lib/prisma";
 
-const APIFY_TOKEN = process.env.APIFY_TOKEN;
-const APIFY_ACTOR = process.env.APIFY_ACTOR ?? "compass~crawler-google-places";
+// Removed top-level const APIFY_TOKEN
+// Removed top-level const APIFY_ACTOR
 
 async function loadSeed(): Promise<{ leads: Lead[] }> {
   const p = path.join(process.cwd(), "data", "leads-seed.json");
@@ -86,6 +86,8 @@ async function enrichWithEmails(leads: Lead[]) {
 // ---------------------------------
 
 export async function POST(req: Request) {
+  const APIFY_TOKEN = process.env.APIFY_TOKEN;
+  const APIFY_ACTOR = process.env.APIFY_ACTOR ?? "compass~crawler-google-places";
   const input = (await req.json()) as ScrapeInput;
 
   // No token = serve cached seed (matches user's input where possible)
@@ -186,6 +188,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ source: "apify", leads: enriched });
   } catch (e) {
+    console.error("Scrape Route Error:", e);
     const { leads } = await loadSeed();
     const sliced = leads.slice(0, input.count);
     const enriched = await enrichWithEmails(sliced);

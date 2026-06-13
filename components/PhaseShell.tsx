@@ -32,15 +32,25 @@ export function PhaseShell({
       className="max-w-7xl mx-auto px-4 sm:px-6 pb-32"
     >
       <header className="mb-10 overflow-hidden">
-        <motion.h1 
+        <motion.h1
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5, ease: "easeOut", delay: 0.1 }}
-          className="font-display text-4xl sm:text-5xl text-foreground leading-[1.05]"
+          className="text-5xl sm:text-7xl text-foreground leading-[0.95] tracking-[-0.04em]"
+          style={{ fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif', fontWeight: 900 }}
         >
-          {title}
+          {title.split('—').map((part, i, arr) => (
+            <span key={i}>
+              {i === 1 ? (
+                <span className="text-[color:var(--accent-red)] italic font-[600] tracking-[-0.02em] pr-1">{part}</span>
+              ) : (
+                part
+              )}
+              {i < arr.length - 1 && "—"}
+            </span>
+          ))}
         </motion.h1>
-        <motion.p 
+        <motion.p
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: "easeOut", delay: 0.2 }}
@@ -50,26 +60,34 @@ export function PhaseShell({
         </motion.p>
       </header>
       <div>{children}</div>
-      <div className="fixed bottom-0 inset-x-0 z-40 border-t border-border bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/65">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
-          <Button
-            variant="outline"
-            onClick={onPrev}
-            disabled={prevDisabled || !onPrev}
-            aria-label="Go to previous phase"
-            className="h-10 px-4"
-          >
-            <ChevronLeft className="h-4 w-4 mr-1.5" strokeWidth={1.75} /> Back
-          </Button>
-          <Button
-            onClick={onNext}
-            disabled={nextDisabled || !onNext}
-            aria-label={nextLabel}
-            className="h-10 px-5 transition-transform duration-150 active:scale-[0.98]"
-          >
-            {nextLabel} <ChevronRight className="h-4 w-4 ml-1.5" strokeWidth={1.75} />
-          </Button>
-        </div>
+      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 pointer-events-none">
+        <motion.div
+          layout
+          className="pointer-events-auto bg-white/90 backdrop-blur-md border border-zinc-200/80 shadow-[0_8px_30px_rgb(0,0,0,0.08)] rounded-full p-1.5 flex items-center gap-1"
+        >
+          {onPrev && (
+            <Button
+              variant="ghost"
+              onClick={onPrev}
+              disabled={prevDisabled}
+              className="rounded-full h-11 px-5 text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100/80 transition-colors"
+            >
+              <ChevronLeft className="h-4 w-4 mr-1.5" strokeWidth={2.5} /> Back
+            </Button>
+          )}
+
+          {onPrev && onNext && <div className="w-[1px] h-5 bg-zinc-200 mx-1" />}
+
+          {onNext && (
+            <Button
+              onClick={onNext}
+              disabled={nextDisabled}
+              className="rounded-full h-11 px-8 font-semibold shadow-sm hover:shadow-md transition-all active:scale-[0.98]"
+            >
+              {nextLabel} <ChevronRight className="h-4 w-4 ml-1.5" strokeWidth={2.5} />
+            </Button>
+          )}
+        </motion.div>
       </div>
     </motion.div>
   );

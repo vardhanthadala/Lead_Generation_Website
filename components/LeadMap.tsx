@@ -1,10 +1,20 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { MapContainer, TileLayer, CircleMarker, Tooltip } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import type { Lead } from "@/lib/types";
 
 export default function LeadMap({ leads }: { leads: Lead[] }) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return <div className="h-[320px] rounded-lg border border-dashed border-border bg-card/50"></div>;
+  }
+
   if (leads.length === 0) {
     return <div className="h-[320px] rounded-lg border border-dashed border-border flex items-center justify-center text-sm text-muted-foreground">Map appears once leads are scraped</div>;
   }

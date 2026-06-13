@@ -70,7 +70,11 @@ export function Phase1Scrape({
         await new Promise((r) => setTimeout(r, 80));
         setLeads(data.leads.slice(0, i + 1));
       }
-      toast.success(`${data.leads.length} leads scraped from ${input.city}`);
+      if (data.source === "seed-fallback" && data.error) {
+        toast.warning(`Apify API Error: ${data.error}. Showing sample data instead.`);
+      } else {
+        toast.success(`${data.leads.length} leads scraped from ${input.city}`);
+      }
     } catch (e) {
       toast.error((e as Error).message);
     } finally {
@@ -190,16 +194,16 @@ export function Phase1Scrape({
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1">
-                          <Star className="h-3.5 w-3.5 fill-[color:var(--chart-4)] text-[color:var(--chart-4)]" />
+                          <Star className="h-3.5 w-3.5 fill-[#FFB800] text-[#FFB800] drop-shadow-[0_0_6px_rgba(255,184,0,0.6)]" />
                           <span className="font-medium">{l.rating?.toFixed(1)}</span>
                           <span className="text-muted-foreground text-xs">({l.reviewsCount})</span>
                         </div>
                       </TableCell>
                       <TableCell>
                         {l.website ? (
-                          <Badge variant="secondary" className="text-xs font-normal"><Globe className="h-3 w-3 mr-1" /> Yes</Badge>
+                          <Badge variant="outline" className="text-xs font-normal text-emerald-600 border-emerald-600/30 bg-emerald-600/10"><Globe className="h-3 w-3 mr-1" /> Yes</Badge>
                         ) : (
-                          <Badge variant="outline" className="text-xs font-normal text-[color:var(--destructive)] border-[color:var(--destructive)]/40 bg-[color:var(--destructive)]/5">No site</Badge>
+                          <Badge variant="outline" className="text-xs font-normal text-red-600 border-red-600/30 bg-red-600/10">No</Badge>
                         )}
                       </TableCell>
                     </motion.tr>
@@ -219,9 +223,9 @@ export function Phase1Scrape({
 
 function Stat({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-md border border-border px-2.5 py-2">
-      <div className="text-[10px] uppercase tracking-[0.15em] text-muted-foreground">{label}</div>
-      <div className="font-display text-xl tabular-nums mt-0.5">{value}</div>
+    <div className="rounded-md border border-border bg-card px-2.5 py-2 shadow-sm">
+      <div className="text-[10px] uppercase tracking-[0.15em] text-[color:var(--accent-red)] font-semibold">{label}</div>
+      <div className="text-xl tabular-nums mt-0.5 font-bold" style={{ fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif' }}>{value}</div>
     </div>
   );
 }

@@ -50,73 +50,74 @@
 }
 
 :root {
-  /* Modern Vibrant Indigo & Slate Theme */
-  --background: #f8fafc;
-  --foreground: #0f172a;
-  --card: #ffffff;
-  --card-foreground: #0f172a;
-  --popover: #ffffff;
-  --popover-foreground: #0f172a;
-  --primary: #4f46e5;
-  --primary-foreground: #ffffff;
-  --secondary: #e0e7ff;
-  --secondary-foreground: #3730a3;
-  --muted: #f1f5f9;
-  --muted-foreground: #64748b;
-  --accent: #dbeafe;
-  --accent-foreground: #1e40af;
-  --destructive: #ef4444;
-  --border: #e2e8f0;
-  --input: #e2e8f0;
-  --ring: #4f46e5;
-  --chart-1: #4f46e5;
-  --chart-2: #06b6d4;
-  --chart-3: #10b981;
-  --chart-4: #f59e0b;
-  --chart-5: #ec4899;
-  --radius: 0.75rem;
-  --sidebar: #f1f5f9;
-  --sidebar-foreground: #0f172a;
-  --sidebar-primary: #4f46e5;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #e0e7ff;
-  --sidebar-accent-foreground: #3730a3;
-  --sidebar-border: #e2e8f0;
-  --sidebar-ring: #4f46e5;
+  --background: #F4F2EC;
+  --foreground: #161616;
+  --card: #FFFFFF;
+  --card-foreground: #161616;
+  --popover: #FFFFFF;
+  --popover-foreground: #161616;
+  --primary: #F24E31;
+  --primary-foreground: #FFFFFF;
+  --secondary: #EAE8E2;
+  --secondary-foreground: #161616;
+  --muted: #EAE8E2;
+  --muted-foreground: #767676;
+  --accent: #EAE8E2;
+  --accent-foreground: #161616;
+  --accent-red: #F24E31;
+  --destructive: #F24E31;
+  --border: #EAE8E2;
+  --input: #EAE8E2;
+  --ring: #161616;
+  --chart-1: #F24E31;
+  --chart-2: #161616;
+  --chart-3: #767676;
+  --chart-4: #EAE8E2;
+  --chart-5: #FFFFFF;
+  --radius: 0.5rem;
+  --sidebar: #F4F2EC;
+  --sidebar-foreground: #161616;
+  --sidebar-primary: #161616;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #EAE8E2;
+  --sidebar-accent-foreground: #161616;
+  --sidebar-border: #EAE8E2;
+  --sidebar-ring: #161616;
 }
 
 .dark {
-  --background: #0f172a;
-  --foreground: #f8fafc;
-  --card: #1e293b;
-  --card-foreground: #f8fafc;
-  --popover: #1e293b;
-  --popover-foreground: #f8fafc;
-  --primary: #6366f1;
-  --primary-foreground: #ffffff;
-  --secondary: #334155;
-  --secondary-foreground: #f8fafc;
-  --muted: #334155;
-  --muted-foreground: #94a3b8;
-  --accent: #1e3a8a;
-  --accent-foreground: #eff6ff;
-  --destructive: #f87171;
-  --border: #334155;
-  --input: #334155;
-  --ring: #6366f1;
-  --chart-1: #6366f1;
-  --chart-2: #22d3ee;
-  --chart-3: #34d399;
-  --chart-4: #fbbf24;
-  --chart-5: #f472b6;
-  --sidebar: #1e293b;
-  --sidebar-foreground: #f8fafc;
-  --sidebar-primary: #6366f1;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #334155;
-  --sidebar-accent-foreground: #f8fafc;
-  --sidebar-border: #334155;
-  --sidebar-ring: #6366f1;
+  --background: #111111;
+  --foreground: #FFFFFF;
+  --card: #1C1C1C;
+  --card-foreground: #FFFFFF;
+  --popover: #1C1C1C;
+  --popover-foreground: #FFFFFF;
+  --primary: #F24E31;
+  --primary-foreground: #FFFFFF;
+  --secondary: #2A2A2A;
+  --secondary-foreground: #FFFFFF;
+  --muted: #2A2A2A;
+  --muted-foreground: #A0A0A0;
+  --accent: #2A2A2A;
+  --accent-foreground: #FFFFFF;
+  --accent-red: #F24E31;
+  --destructive: #F24E31;
+  --border: #333333;
+  --input: #333333;
+  --ring: #FFFFFF;
+  --chart-1: #F24E31;
+  --chart-2: #FFFFFF;
+  --chart-3: #A0A0A0;
+  --chart-4: #333333;
+  --chart-5: #1C1C1C;
+  --sidebar: #111111;
+  --sidebar-foreground: #FFFFFF;
+  --sidebar-primary: #FFFFFF;
+  --sidebar-primary-foreground: #111111;
+  --sidebar-accent: #2A2A2A;
+  --sidebar-accent-foreground: #FFFFFF;
+  --sidebar-border: #333333;
+  --sidebar-ring: #FFFFFF;
 }
 
 @layer base {
@@ -125,9 +126,6 @@
   }
   body {
     @apply bg-background text-foreground;
-    background-image:
-      radial-gradient(circle at 1px 1px, #4f46e515 1px, transparent 0);
-    background-size: 22px 22px;
     font-feature-settings: "ss01", "cv11";
   }
   html {
@@ -163,5 +161,21 @@
       transition-duration: 0.01ms !important;
       scroll-behavior: auto !important;
     }
+  }
+
+  /* Custom elegant scrollbars */
+  ::-webkit-scrollbar {
+    height: 6px;
+    width: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 10px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--muted-foreground);
   }
 }

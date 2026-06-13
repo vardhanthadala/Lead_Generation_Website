@@ -19,9 +19,11 @@ import { PdfReportTemplate } from "./PdfReportTemplate";
 export function Phase5Outreach({
   selected,
   onPrev,
+  onNext,
 }: {
   selected: RankedLead | null;
   onPrev: () => void;
+  onNext: () => void;
 }) {
   const [channel, setChannel] = useState<OutreachChannel>("whatsapp");
   const [lang, setLang] = useState<OutreachLanguage>("english");
@@ -134,6 +136,7 @@ export function Phase5Outreach({
         title="Phase 5 — Outreach"
         subtitle="Highly professional AI-drafted outreach. Built-in 3-day follow-up."
         onPrev={onPrev}
+        onNext={onNext}
       >
         <IncompleteState
           title="No lead selected yet"
@@ -152,11 +155,11 @@ export function Phase5Outreach({
   ];
 
   return (
-    <PhaseShell title="Phase 5 — Outreach" subtitle="Highly professional AI-drafted outreach. Built-in 3-day follow-up." onPrev={onPrev}>
+    <PhaseShell title="Phase 5 — Outreach" subtitle="Highly professional AI-drafted outreach. Built-in 3-day follow-up." onPrev={onPrev} onNext={onNext}>
       <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
         <div>
           <div className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">Sending to</div>
-          <div className="font-display text-2xl mt-1">{selected.name}</div>
+          <div className="text-2xl mt-1 font-[900] tracking-tight">{selected.name}</div>
           <div className="text-xs text-muted-foreground mt-0.5">{selected.phone}{selected.email ? ` · ${selected.email}` : ""}</div>
         </div>
       </div>

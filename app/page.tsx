@@ -24,7 +24,6 @@ export default function Page() {
     if (Object.keys(audits).length > 0) s.add(2);
     if (selectedId) {
       s.add(3);
-      s.add(4);
     }
     return s;
   }, [leads, audits, selectedId]);
@@ -45,33 +44,15 @@ export default function Page() {
       >
         Skip to content
       </a>
-      <header className="border-b border-border bg-background/80 backdrop-blur sticky top-0 z-30">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            {/* <img src="/logo.png" alt="Logo" className="h-9 w-9 object-contain rounded-md" /> */}
-            <div>
-              <motion.div 
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4 }}
-                className="font-display text-xl leading-none"
-              >
-                Lead Gen Machine
-              </motion.div>
-              <motion.div 
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.4, delay: 0.1 }}
-                className="text-[11px] text-muted-foreground leading-tight tracking-wide uppercase mt-1"
-              >
-                Scrape · Audit · Rank · Build · Outreach
-              </motion.div>
+      <div className="px-4 sm:px-6 w-full mt-6 mb-8">
+        <header className="border border-border bg-white shadow-sm rounded-[2.5rem] max-w-5xl mx-auto overflow-hidden pt-3 pb-1.5">
+          <div className="px-8">
+            <div className="w-full">
+              <Stepper current={phase} completed={completed} onJump={(n) => setPhase(n)} />
             </div>
           </div>
-
-        </div>
-        <Stepper current={phase} completed={completed} onJump={(n) => setPhase(n)} />
-      </header>
+        </header>
+      </div>
       <main id="main" className="pt-6" tabIndex={-1}>
         <AnimatePresence mode="wait">
           {phase === 1 && (
@@ -99,23 +80,16 @@ export default function Page() {
               audits={audits}
               selectedId={selectedId}
               setSelectedId={setSelectedId}
-              onNext={() => setPhase(4)}
-              onPrev={() => setPhase(2)}
-            />
-          )}
-          {phase === 4 && (
-            <Phase4Build
-              key="p4"
-              selected={selectedRanked}
               onNext={() => setPhase(5)}
-              onPrev={() => setPhase(3)}
+              onPrev={() => setPhase(2)}
             />
           )}
           {phase === 5 && (
             <Phase5Outreach
               key="p5"
               selected={selectedRanked}
-              onPrev={() => setPhase(4)}
+              onPrev={() => setPhase(3)}
+              onNext={() => setPhase(6)}
             />
           )}
           {phase === 6 && (
