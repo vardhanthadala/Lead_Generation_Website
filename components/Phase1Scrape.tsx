@@ -31,6 +31,7 @@ export function Phase1Scrape({
   const [loading, setLoading] = useState(false);
   const [manualUrl, setManualUrl] = useState("");
   const [manualLoading, setManualLoading] = useState(false);
+  const [hoveredLeadId, setHoveredLeadId] = useState<string | null>(null);
 
   async function addManualUrl() {
     if (!manualUrl) return;
@@ -147,7 +148,7 @@ export function Phase1Scrape({
             <CardTitle>Live map</CardTitle>
           </CardHeader>
           <CardContent>
-            <LeadMap leads={leads} />
+            <LeadMap leads={leads} hoveredLeadId={hoveredLeadId} />
           </CardContent>
         </Card>
       </div>
@@ -176,7 +177,9 @@ export function Phase1Scrape({
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ duration: 0.3 }}
-                      className="border-b border-border"
+                      className="border-b border-border hover:bg-muted/30 transition-colors cursor-default"
+                      onMouseEnter={() => setHoveredLeadId(l.id)}
+                      onMouseLeave={() => setHoveredLeadId(null)}
                     >
                       <TableCell className="text-muted-foreground">{i + 1}</TableCell>
                       <TableCell>
